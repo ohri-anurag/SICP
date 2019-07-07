@@ -644,3 +644,88 @@
     (= (gcd x n) 1))
   (filtered-accumulate relatively-prime? + 0 identity 1 inc (- n 1)))
 
+(define (f g)
+  (g 2))
+
+; (display (f f)) - This evaluates to (2 2), which fails, since 2 is not a function.
+
+(define (half-interval-method f a b)
+  (let ((a-value (f a))
+        (b-value (f b)))
+    (cond ((and (negative? a-value) (positive? b-value))
+           (search f a b))
+          ((and (positive? a-value) (negative? b-value))
+           (search f a b))
+          (else
+           (error "Values are not of opposite sign" a b)))))
+
+; === 1.35 ===
+; x -> 1 + 1/x
+; x^2 -> x + 1
+; x^2 - x - 1 = 0
+; Here, a = 1, b = -1, c = -1
+; x = (-b +- sqrt(b^2 - 4ac))/2a
+; x = (1 +- sqrt(1 + 4))/2
+; x = (1 + sqrt(5))/2 or x = (1 - sqrt(5))/2
+; x = Phi or x = phi
+
+(define tolerance 0.00001)
+; === 1.36 ===
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (display next)
+      (newline)
+      (if (close-enough? guess next)
+        next
+        (try next))))
+  (try first-guess))
+
+; (fixed-point (lambda (x) (+ 1 (/ 1 x))) 1) - Returns 1.6180327868852458
+
+; x^x = 1000
+; x * log x = log 1000
+; x = log 1000 / log x
+; f(x) = log 1000 / log x
+
+; (fixed-point (lambda (x) (/ (log 1000) (log x))) 2.0) - Without damping takes 34 steps, produces 4.555532270803653
+; (fixed-point (lambda (x) (average x (/ (log 1000) (log x)))) 2.0) - With damping 9 steps, produces 4.555537551999825
+
+; === 1.37 (A) ===
+(define (cont-frac n d k)
+  (define (iter t result)
+    (if (= t 0)
+      result
+      (iter (- t 1) (/ (n k) (+ (d k) result)))))
+  (iter k 0.0))
+
+;  (cont-frac (lambda (i) 1.0) (lambda (i) 1.0) 11) - Produces correct value upto 4 decimal places in 11 turns
+; === 1.37 (B) ===
+(define (cont-frac-rec n d k)
+  (define (recur i)
+    (if (> i k)
+      0
+      (/ (n i) (+ (d i) (recur (+ i 1))))))
+  (recur 1))
+; (cont-frac-rec (lambda (i) 1.0) (lambda (i) 1.0) 11)
+
+; === 1.38 ===
+(define (euler k)
+  (+ 2 (cont-frac
+    (lambda (i) 1)
+    (lambda (i)
+      (if (= (remainder i 3) 2)
+        (- i (quotient i 3))
+        1))
+    k)))
+
+; === 1.39 ===
+(define (tan-cf x k)
+  (define (n i)
+    (if (= i 1)
+      x
+      (* -1 (square x))))
+  (define (d i) (- (* 2 i) 1))
+  (cont-frac n d k))
