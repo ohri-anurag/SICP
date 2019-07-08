@@ -729,3 +729,92 @@
       (* -1 (square x))))
   (define (d i) (- (* 2 i) 1))
   (cont-frac n d k))
+
+; === 1.40 ===
+; === Helpers ===
+(define dx 0.00001)
+
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+
+(define (newtons-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+
+(define (newtons-method g guess)
+  (fixed-point (newtons-transform g) guess))
+
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+
+(define (fixed-point-of-transform g transform guess)
+  (fixed-point (transform g) guess))
+
+(define (cubic a b c)
+  (lambda (x)
+    (+ (cube x) (* a (square x)) (* b x) c)))
+
+; === 1.41 ===
+(define (double g)
+  (lambda (x)
+    (g (g x))))
+
+(define (inc x) (+ 1 x))
+
+; (((double (double double)) inc) 5) - Returns 21
+; ((double (double double)) inc)
+; ((double double) ((double double) inc))
+; ((double double) (double (double inc)))
+; (double (double (double (double inc)))) - inc called 16 times
+
+; === 1.42 ===
+(define (compose f g)
+  (lambda (x)
+    (f (g x))))
+
+; ((compose square inc) 6)
+
+; === 1.43 ===
+(define (repeated f n)
+  (if (= n 1)
+    f
+    (compose f (repeated f (- n 1)))))
+
+; === 1.44 ===
+(define (smooth f)
+  (lambda (x)
+    (/ (+ (f (- x dx)) (f x) (f (+ x dx))) 3)))
+
+(define (n-smooth f n)
+  ((repeated smooth n) f))
+
+; (fixed-point-of-transform (lambda (y) (/ 256 (fast-exp y 7))) (repeated average-damp 3) 1.0)
+; === 1.45 ===
+(define (nth-root x n)
+  (fixed-point-of-transform (lambda (y) (/ x (fast-exp y (- n 1)))) (repeated average-damp (/ (log n) (log 2))) 1.0))
+
+; === 1.46 ===
+(define (iterative-improve good-enough? improve-guess)
+  (lambda (guess)
+    (if (good-enough? guess)
+      guess
+      ((iterative-improve good-enough? improve-guess) (improve-guess guess)))))
+
+(define (sqrt-final x)
+  ((iterative-improve
+    (lambda (guess)
+      (good-enough? guess x))
+    (lambda (guess)
+      (improve guess x)))
+   1.0))
+
+(define (fixed-point-final f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  ((iterative-improve
+    (lambda (guess)
+      (close-enough? guess (f guess)))
+    f)
+   first-guess))
