@@ -71,38 +71,38 @@
 ;      0))
 
 ; === 2.6 ===
-(define zero (lambda (f) (lambda (x) x)))
+; (define zero (lambda (f) (lambda (x) x)))
 
-(define (add-1 n)
-  (lambda (f) (lambda (x) (f ((n f) x)))))
+; (define (add-1 n)
+;   (lambda (f) (lambda (x) (f ((n f) x)))))
 
-(define one (lambda (f) (lambda (x) (f x))))
+; (define one (lambda (f) (lambda (x) (f x))))
 
-(define two (lambda (f) (lambda (x) (f (f x)))))
+; (define two (lambda (f) (lambda (x) (f (f x)))))
 
-(define (+ m n)
-  (lambda (f)
-    (lambda (x)
-      ((m f) ((n f) x)))))
+; (define (+ m n)
+;   (lambda (f)
+;     (lambda (x)
+;       ((m f) ((n f) x)))))
 
 ; (define three (+ one two))
 
-(define (test x)
-  (display x)
-  x)
+; (define (test x)
+;   (display x)
+;   x)
 
 ; === 2.7 ===
 (define (add-interval x y)
   (make-interval (+ (lower-bound x) (lower-bound y))
 		 (+ (upper-bound x) (upper-bound y))))
 
-(define (mul-interval x y)
-  (let ((p1 (* (lower-bound x) (lower-bound y)))
-	(p2 (* (lower-bound x) (upper-bound y)))
-	(p3 (* (upper-bound x) (lower-bound y)))
-	(p4 (* (upper-bound x) (upper-bound y))))
-    (make-interval (min p1 p2 p3 p4)
-		   (max p1 p2 p3 p4))))
+; (define (mul-interval x y)
+;   (let ((p1 (* (lower-bound x) (lower-bound y)))
+; 	(p2 (* (lower-bound x) (upper-bound y)))
+; 	(p3 (* (upper-bound x) (lower-bound y)))
+; 	(p4 (* (upper-bound x) (upper-bound y))))
+;     (make-interval (min p1 p2 p3 p4)
+; 		   (max p1 p2 p3 p4))))
 
 (define make-interval cons)
 (define (upper-bound x) (max (car x) (cdr x)))
@@ -135,7 +135,7 @@
         (make-interval (/ 1.0 u) (/ 1.0 l))))))
 
 ; === 2.11 ===
-(define (mul-interval-case x y)
+(define (mul-interval x y)
   (let ((u1 (upper-bound x))
         (l1 (lower-bound x))
         (u2 (upper-bound y))
@@ -156,3 +156,105 @@
            ((and (> u1 0) (> l1 0) (> u2 0) (> l2 0)) (make-interval (* u1 u2) (* l1 l2)))
            ; All Negative
            ((and (< u1 0) (< l1 0) (< u2 0) (< l2 0)) (make-interval (* l1 l2) (* u1 u2))))))
+
+; === 2.12 ===
+(define (make-center-percent c p)
+  (let ((w (/ (* p c) 100.0)))
+    (make-interval (- c w) (+ c w))))
+
+(define (center i)
+  (average (lower-bound i) (upper-bound i)))
+
+(define (width i)
+  (/ (- (upper-bound i) (lower-bound i)) 2))
+
+(define (percent x)
+  (* 100.0 (/ (width x) (center x))))
+
+; === 2.13 ===
+; t1 = w1/c1
+; t2 = w2/c2
+; For positive intervals, we have
+; [c1-w1, c1+w1] * [c2-w2, c2+w2]
+; = [(c1-w1)*(c2-w2), (c1+w1)*(c2+w2)]
+; = [c1c2 - c1w2 - c2w1 + w1w2, c1c2 + c1w2 + c2w1 + w1w2]
+; Since, w1, w2 are both small, w1w2 ~ 0
+; = [c1c2 - (c1w2+c2w1), c1c2 + (c1w2+c2w1)]
+; Tolerance = (c1w2 + c2w1)/c1c2 = c1w2/c1c2 + c2w1/c1c2 = w2/c2 + w1/c1 = t1 + t2
+
+; === 2.14 ===
+(define (par1 r1 r2)
+  (div-interval (mul-interval r1 r2)
+                (add-interval r1 r2)))
+
+(define (par2 r1 r2)
+  (let ((one (make-interval 1 1)))
+    (div-interval one
+                  (add-interval (div-interval one r1)
+                                (div-interval one r2)))))
+
+; (par1 (make-center-percent 6 0.1) (make-center-percent 5 0.1)) ; (2.719101807283626 . 2.7354654654654653)
+; (par2 (make-center-percent 6 0.1) (make-center-percent 5 0.1)) ; (2.7245454545454546 . 2.73)
+
+; (div-interval (make-center-percent 100 1) (make-center-percent 100 1)) ; (.9801980198019802 . 1.0202020202020203)
+
+; (define r1 (make-center-percent 2 1))
+; (par1 r1 r1) = (1.0304040404040404 . .9703960396039604)
+; (par2 r1 r1) = (1.01 . .99)
+
+; === 2.15 ===
+; Eva Lu Ator is right. When uncertain variables are repeated in a program, the program might end up using different values within
+; the same interval for the same calculation.
+
+; In case of r1*r2/(r1 + r2)
+; to get the upper bound of total resistance, we need to maximise numerator and minimize denomerator.
+; To maximise numerator, max value of r1, r2 is chosen.
+; To minimise denomerator, min value of r1, r2 is chosen.
+; Here we see that an inconsistency has arisen, which causes looser bounds.
+
+; === 2.16 ===
+; We have already seen in 2.15 why we get different answers in computing the same algebraic expression in
+; two different ways. 
+; It seems that it would be quite difficult to create such a library that implements correct interval algebra, since we would need
+; to relate two uses of the same interval somehow. We might have to create an interpreter that understands operations, and
+; relates the different uses of the same interval. Quite difficult indeed.
+
+; === 2.17 ===
+(define (last-pair items)
+  (let ((tail (cdr items)))
+    (if (null? (cdr items))
+      items
+      (last-pair (cdr items)))))
+
+; === 2.18 ===
+(define (reverse items)
+  (define (reverse-iter acc items)
+    (if (null? items)
+      acc
+      (reverse-iter (cons (car items) acc) (cdr items))))
+  (reverse-iter (list) items))
+
+(define (cc amount coin-values)
+  (cond ((= amount 0) 1)
+        ((or (< amount 0) (no-more? coin-values)) 0)
+        (else
+          (+ (cc amount
+                 (except-first-denomination coin-values))
+             (cc (- amount
+                    (first-denomination coin-values))
+                 coin-values)))))
+
+(define no-more? null?)
+(define first-denomination car)
+(define except-first-denomination cdr)
+
+; The order of coin-values has no effect on the result. The function cc makes no such assumptions about coin-values,
+; and hence the result is independent of the order of coin-values.
+
+; === 2.20 ===
+(define (same-parity x . items)
+  (define (iter acc items)
+    (cond ((null? items) (reverse acc))
+          ((= (remainder x 2) (remainder (car items) 2)) (iter (cons (car items) acc) (cdr items)))
+          (else (iter acc (cdr items)))))
+  (iter (list x) items))
