@@ -258,3 +258,28 @@
           ((= (remainder x 2) (remainder (car items) 2)) (iter (cons (car items) acc) (cdr items)))
           (else (iter acc (cdr items)))))
   (iter (list x) items))
+
+; === 2.21 ===
+; (define (square-list items)
+;   (if (null? items)
+;     ()
+;     (cons (square (car items)) (square-list (cdr items)))))
+
+(define (square-list items)
+  (map square items))
+
+; === 2.22 ===
+; Since cons prepends an item to the rest of the list, the last item to be processed is
+; added last, and it becomes the first element.
+
+; In the second case, the traditional list structure is not followed. Instead of each cdr providing the rest of the list,
+; we have the cons providing it.
+
+; === 2.23 ===
+(define (for-each f items)
+  (cond ((not (null? items))
+          (f (car items))
+          (for-each f (cdr items)))))
+
+(for-each (lambda (x) (newline) (display x))
+          (list 57 321 88))
