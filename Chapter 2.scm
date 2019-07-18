@@ -283,3 +283,128 @@
 
 (for-each (lambda (x) (newline) (display x))
           (list 57 321 88))
+
+; === 2.24 ===
+(list 1 (list 2 (list 3 4))) ; (1 (2 (3 4)))
+;  ----     ----
+; |.|.| -> |.|\|
+; ----     ----
+; |        |
+; 1       ----     ----
+;        |.|.| -> |.|\|
+;        ----     ----
+;        |        |
+;        2       ----     ----
+;               |.|.| -> |.|\|
+;               ----     ----
+;               |        |
+;               3        4
+
+; === 2.25 ===
+; ( 1 3 (5 7) 9) - cadaddr
+; ((7)) - caar
+; (1 (2 (3 (4 (5 (6 7)))))) - cadadadadadadr
+;   ((repeated (compose car cdr) 6) (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7)))))))
+
+; === 2.26 ===
+(define x (list 1 2 3))
+(define y (list 4 5 6))
+
+(append x y) ; (1 2 3 4 5 6)
+(cons x y) ; ((1 2 3) 4 5 6)
+(list x y) ; ((1 2 3) (4 5 6))
+
+; === 2.27 ===
+(define (deep-reverse items)
+  (define (iter acc items)
+    (if (null? items)
+      acc
+      (iter (cons (deep-reverse (car items)) acc) (cdr items))))
+  (if (pair? items)
+    (iter () items)
+    items))
+
+; === 2.28 ===
+(define (fringe tree)
+  (cond ((null? tree) ())
+        ((not (pair? tree)) (list tree))
+        (else (append (fringe (car tree)) (fringe (cdr tree))))))
+
+; (define x (list (list 1 2) (list 3 4)))
+
+; === 2.29 ===
+(define (make-mobile left right)
+  (list left right))
+
+(define (make-branch length structure)
+  (list length structure))
+
+; === a ===
+(define left-branch car)
+(define right-branch cadr)
+
+(define branch-length car)
+(define branch-structure cadr)
+
+; === b ===
+(define (total-weight mobile)
+  (if (pair? mobile)
+    (+ (total-weight (branch-structure (left-branch mobile)))
+       (total-weight (branch-structure (right-branch mobile))))
+    mobile))
+
+; === c ===
+(define (balanced? mobile)
+  (define (torque branch)
+    (* (branch-length branch) (total-weight (branch-structure branch))))
+  (if (pair? mobile)
+    (let ((l (left-branch mobile))
+          (r (right-branch mobile)))
+      (and (balanced? (branch-structure l))
+            (balanced? (branch-structure r))
+            (= (torque l) (torque r))))
+    #t))
+
+(define a (make-mobile (make-branch 2 3) (make-branch 2 3))) 
+(define d (make-mobile (make-branch 10 a) (make-branch 12 5))) 
+
+; === d ===
+; Only need to change the selectors
+
+; === 2.30 ===
+; (define (square-tree tree)
+;   (cond ((null? tree) ())
+;         ((not (pair? tree)) (square tree))
+;         (else (cons (square-tree (car tree)) (square-tree (cdr tree))))))
+
+; (define (square-tree tree)
+;   (map (lambda (sub-tree)
+;          (if (pair? sub-tree)
+;              (square-tree sub-tree)
+;              (square sub-tree)))
+;        tree))
+
+; === 2.31 ===
+(define (tree-map f tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (tree-map f sub-tree)
+             (f sub-tree)))
+       tree))
+
+(define (square-tree tree) (tree-map square tree))
+; (square-tree (list 1 (list 2 (list 3 4) 5) (list 6 7)))
+
+; === 2.32 ===
+(define (subsets s)
+  (if (null? s)
+      (list ())
+      (let ((rest (subsets (cdr s))))
+        (append rest (map (lambda (subset) (cons (car s) subset)) rest)))))
+
+; This works since for each subset, if we consider one element of s,
+; it can either be a member or not be a member.
+; We calculate the subsets without taking the first element into account,
+; and then add it to each of the calculated subsets. In this way, we have
+; both the sets that contain and miss the first element. This works recursively
+; to calculate all the elements.
