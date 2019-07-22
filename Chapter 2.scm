@@ -408,3 +408,37 @@
 ; and then add it to each of the calculated subsets. In this way, we have
 ; both the sets that contain and miss the first element. This works recursively
 ; to calculate all the elements.
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+    initial
+    (op (car sequence)
+        (accumulate op initial (cdr sequence)))))
+
+; === 2.33 ===
+(define (map p sequence)
+  (accumulate (lambda (x y) (cons (p x) y)) () sequence))
+
+(define (append seq1 seq2)
+  (accumulate cons seq2 seq1))
+
+(define (length sequence)
+  (accumulate (lambda (x y) (+ 1 y)) 0 sequence))
+
+; === 2.34 ===
+(define (horner-eval x coefficient-sequence)
+  (accumulate (lambda (this-coeff higher-terms) (+ this-coeff (* x higher-terms)))
+              0
+              coefficient-sequence))
+
+; === 2.35 ===
+(define (count-leaves t)
+  (accumulate + 0 
+    (cond ((null? x) (list 0))
+          ((not (pair? t)) (list 1))
+          (else (map count-leaves t)))))
+; (define (count-leaves x)
+;   (cond ((null? x) 0)
+;         ((not (pair? x)) 1)
+;         (else (+ (count-leaves (car x))
+;                  (count-leaves (cdr x))))))
