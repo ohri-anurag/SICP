@@ -442,3 +442,51 @@
 ;         ((not (pair? x)) 1)
 ;         (else (+ (count-leaves (car x))
 ;                  (count-leaves (cdr x))))))
+
+; === 2.36 ===
+(define (accumulate-n op init seqs)
+  (if (null? (car seqs))
+    ()
+    (cons (accumulate op init (map car seqs))
+          (accumulate-n op init (map cdr seqs)))))
+
+; (accumulate-n + 0 (list (list 1 2 3) (list 4 5 6) (list 7 8 9) (list 10 11 12))) - (22 26 30)
+
+; === 2.37 ===
+(define (dot-product v w)
+  (accumulate + 0 (map * v w)))
+
+(define (matrix-*-vector m v)
+  (map (lambda (r) (dot-product r v)) m))
+
+(define (transpose mat)
+  (accumulate-n cons () mat))
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (lambda (r) (matrix-*-vector cols r)) m)))
+
+; === 2.38 ===
+(define (fold-left op initial sequence)
+  (define (iter result rest)
+    (if (null? rest)
+      result
+      (iter (op result (car rest))
+            (cdr rest))))
+  (iter initial sequence))
+(define fold-right accumulate)
+
+; (fold-right / 1 (list 1 2 3)) = 3/2
+; (fold-left / 1 (list 1 2 3)) = 1/6
+; (fold-right list () (list 1 2 3)) = (1 (2 (3 ())))
+; (fold-left list () (list 1 2 3)) = (((() 1) 2) 3)
+
+; op must be commutative, ie (op a b) = (op b a)
+; and associative, ie (op (op a b) c) = (op a (op b c))
+
+; === 2.39 ===
+(define (reverse sequence)
+  (fold-right (lambda (x y) (append y (list x))) () sequence))
+
+(define (reverse sequence)
+  (fold-left (lambda (x y) (cons y x)) () sequence))
