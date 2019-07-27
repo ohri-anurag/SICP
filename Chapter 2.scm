@@ -490,3 +490,75 @@
 
 (define (reverse sequence)
   (fold-left (lambda (x y) (cons y x)) () sequence))
+
+
+; === 2.40 ===
+(define (enumerate-interval low high)
+  (if (> low high)
+    ()
+    (cons low (enumerate-interval (+ low 1) high))))
+
+(define (flatmap proc seq)
+  (accumulate append () (map proc seq)))
+
+(define (unique-pairs n)
+  (flatmap
+    (lambda (i)
+      (map (lambda (j) (list i j)) (enumerate-interval 1 (- i 1))))
+    (enumerate-interval 1 n)))
+
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+(define (make-pair-sum pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+    (filter prime-sum? (unique-pairs n))))
+
+; === 2.41 ===
+(define (ordered-triples n s)
+  (filter (lambda (triple) (= (accumulate + 0 triple) s))
+    (flatmap
+      (lambda (i)
+        (map (lambda (p) (cons i p)) (unique-pairs (- i 1))))
+      (enumerate-interval 1 n))))
+
+; === 2.42 ===
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+      (list empty-boards)
+      (filter
+        (lambda (positions) (safe? k positions))
+        (flatmap
+          (lambda (rest-of-queens)
+            (map (lambda (new-row)
+                    (adjoin-position new-row k rest-of-queens))
+                 (enumerate-interval 1 board-size)))
+          (queen-cols (- k 1))))))
+  (queen-cols board-size))
+
+(define empty-boards ())
+(define (safe? col positions)
+  (define (safe-pair? a b)
+    (not
+      (or 
+        (= (car a) (car b))
+        (= 
+          (abs (- (car a) (car b)))
+          (abs (- (cdr a) (cdr b)))))))
+  (define (safe-helper? pos positions)
+    (if (null? positions)
+      #t
+      (and
+        (safe-pair? pos (car positions))
+        (safe-helper? pos (cdr positions)))))
+  (safe-helper? (car positions) (cdr positions)))
+(define (adjoin-position row col positions)
+  (cons (cons row col) positions))
+
+; === 2.43 ===
+; Since the queen-cols function is being called for every possible row, this means that for 1 column
+; there will be 8 queen-cols calls. And this happen for 8 columns recursively. That means 8^8 calls.
+; I think that the running time would be 8^8T.
