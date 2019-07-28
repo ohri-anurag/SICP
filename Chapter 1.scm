@@ -308,11 +308,11 @@
 (define (timed-prime-test n)
   (newline)
   (display n)
-  (start-prime-test n (runtime)))
+  (start-prime-test n (cpu-time)))
 
 (define (start-prime-test n start-time)
   (if (prime? n)
-      (report-prime (- (runtime) start-time))))
+      (report-prime (- (cpu-time) start-time))))
 
 (define (report-prime elapsed-time)
   (display " *** ")
@@ -370,11 +370,11 @@
 
 (define (start-prime-test-new n start-time)
   (if (prime-new? n)
-      (report-prime (- (runtime) start-time))))
+      (report-prime (- (cpu-time) start-time))))
 (define (timed-prime-test-new n)
   (newline)
   (display n)
-  (start-prime-test-new n (runtime)))
+  (start-prime-test-new n (cpu-time)))
 
 ; (timed-prime-test-new 100000000003)
 ; (timed-prime-test-new 100000000019)
@@ -408,7 +408,7 @@
 ;100000000000067 *** 374401
 ;100000000000097 *** 390000
 
-; Once again, it is clearly evident that the runtimes have decreased by a factor 2, which is what we expected.
+; Once again, it is clearly evident that the cpu-times have decreased by a factor 2, which is what we expected.
 
 ; === 1.24 ===
 
@@ -425,20 +425,20 @@
 (define (fermat-test n)
   (define (try-it a)
     (= (expmod a n n) a))
-  (try-it (+ 1 (random-integer (- n 1)))))
+  (try-it (+ 1 (random (- n 1)))))
 
 (define (fast-prime? n times)
-  (cond ((= times 0) true)
+  (cond ((= times 0) #t)
         ((fermat-test n) (fast-prime? n (- times 1)))
-        (else false)))
+        (else #f)))
 
 (define (start-prime-test-fast n start-time)
   (if (fast-prime? n 5)
-      (report-prime (- (runtime) start-time))))
+      (report-prime (- (cpu-time) start-time))))
 (define (timed-prime-test-fast n)
   (newline)
   (display n)
-  (start-prime-test-fast n (runtime)))
+  (start-prime-test-fast n (cpu-time)))
 
 (newline)
 (display "Fast Prime Test")
@@ -527,12 +527,12 @@
 (define (miller-rabin-test n)
   (define (try-it a)
     (= (expmod-signal a (- n 1) n) 1))
-  (try-it (+ 1 (random-integer (- n 1)))))
+  (try-it (+ 1 (random (- n 1)))))
 
 (define (fast-prime-new? n times)
-  (cond ((= times 0) true)
+  (cond ((= times 0) #t)
         ((miller-rabin-test n) (fast-prime-new? n (- times 1)))
-        (else false)))
+        (else #f)))
 (define (print string)
   (newline)
   (display string)

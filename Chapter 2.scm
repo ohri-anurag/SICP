@@ -131,7 +131,7 @@
     (let ((l (lower-bound y))
           (u (upper-bound y)))
       (if (or (= l 0) (= u 0) (and (< l 0) (> u 0)))
-        (error "Divisor interval contains zero!!")
+        (error #f "Divisor interval contains zero!!")
         (make-interval (/ 1.0 u) (/ 1.0 l))))))
 
 ; === 2.11 ===
@@ -321,12 +321,12 @@
       acc
       (iter (cons (deep-reverse (car items)) acc) (cdr items))))
   (if (pair? items)
-    (iter () items)
+    (iter '() items)
     items))
 
 ; === 2.28 ===
 (define (fringe tree)
-  (cond ((null? tree) ())
+  (cond ((null? tree) '())
         ((not (pair? tree)) (list tree))
         (else (append (fringe (car tree)) (fringe (cdr tree))))))
 
@@ -398,7 +398,7 @@
 ; === 2.32 ===
 (define (subsets s)
   (if (null? s)
-      (list ())
+      (list '())
       (let ((rest (subsets (cdr s))))
         (append rest (map (lambda (subset) (cons (car s) subset)) rest)))))
 
@@ -417,7 +417,7 @@
 
 ; === 2.33 ===
 (define (map p sequence)
-  (accumulate (lambda (x y) (cons (p x) y)) () sequence))
+  (accumulate (lambda (x y) (cons (p x) y)) '() sequence))
 
 (define (append seq1 seq2)
   (accumulate cons seq2 seq1))
@@ -446,7 +446,7 @@
 ; === 2.36 ===
 (define (accumulate-n op init seqs)
   (if (null? (car seqs))
-    ()
+    '()
     (cons (accumulate op init (map car seqs))
           (accumulate-n op init (map cdr seqs)))))
 
@@ -460,7 +460,7 @@
   (map (lambda (r) (dot-product r v)) m))
 
 (define (transpose mat)
-  (accumulate-n cons () mat))
+  (accumulate-n cons '() mat))
 
 (define (matrix-*-matrix m n)
   (let ((cols (transpose n)))
@@ -486,20 +486,20 @@
 
 ; === 2.39 ===
 (define (reverse sequence)
-  (fold-right (lambda (x y) (append y (list x))) () sequence))
+  (fold-right (lambda (x y) (append y (list x))) '() sequence))
 
 (define (reverse sequence)
-  (fold-left (lambda (x y) (cons y x)) () sequence))
+  (fold-left (lambda (x y) (cons y x)) '() sequence))
 
 
 ; === 2.40 ===
 (define (enumerate-interval low high)
   (if (> low high)
-    ()
+    '()
     (cons low (enumerate-interval (+ low 1) high))))
 
 (define (flatmap proc seq)
-  (accumulate append () (map proc seq)))
+  (accumulate append '() (map proc seq)))
 
 (define (unique-pairs n)
   (flatmap
@@ -539,7 +539,7 @@
           (queen-cols (- k 1))))))
   (queen-cols board-size))
 
-(define empty-boards ())
+(define empty-boards '())
 (define (safe? col positions)
   (define (safe-pair? a b)
     (not
