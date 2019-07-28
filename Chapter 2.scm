@@ -562,3 +562,24 @@
 ; Since the queen-cols function is being called for every possible row, this means that for 1 column
 ; there will be 8 queen-cols calls. And this happen for 8 columns recursively. That means 8^8 calls.
 ; I think that the running time would be 8^8T.
+
+; === 2.53 ===
+(list 'a 'b 'c) ; (a b c)
+(list (list 'george)) ; ((george))
+(cdr '((x1 x2) (y1 y2))) ; ((y1 y2))
+(cadr '((x1 x2) (y1 y2))) ; (y1 y2)
+(pair? (car '(a short list))) ; #f
+(memq 'red '((red shoes) (blue socks))) ; #f
+(memq 'red '(red shoes blue socks)) ; (red shoes blue socks)
+
+; === 2.54 ===
+(define (equal? a b)
+  (if (and (pair? a) (pair? b))
+    (and (eq? (car a) (car b)) (equal? (cdr a) (cdr b)))
+    (eq? a b)))
+
+; === 2.55 ===
+; ''abracadabra
+; = '(quote abracadabra)
+; which scheme interprets as a list with first element quote and second element abracadabra, both of them symbols.
+; So, car returns the first element, ie quote.
