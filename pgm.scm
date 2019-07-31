@@ -59,16 +59,6 @@
 (define (parse-matrix w h maxval port)
   (cons (list w h maxval) (bytevector->u8-list (get-bytevector-n port (* w h)))))
 
-; PGM Manipulation functions
-; Invert the colors of a pgm, using maxval
-(define (invert pgm)
-  (let ((parameters (car pgm))
-        (matrix (cdr pgm)))
-    (cons parameters
-      (map
-        (lambda (x) (- (caddr parameters) x))
-        matrix))))
-
 ; Write the PGM to another file
 (define (write-ascii-number port x)
   (put-bytevector port
@@ -89,3 +79,68 @@
     (write-parameters port (car pgm))
     (put-bytevector port (u8-list->bytevector (cdr pgm)))
     (close-port port)))
+
+; Helper functions
+(define (split bytes len)
+  (define (split-helper bytes i tmp acc)
+    (cond ((null? bytes) (reverse (cons (reverse tmp) acc)))
+          ((= i len) (split-helper bytes 0 '() (cons (reverse tmp) acc)))
+          (else (split-helper (cdr bytes) (+ i 1) (cons (car bytes) tmp) acc))))
+  (split-helper bytes 0 '() '()))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+    initial
+    (op (car sequence)
+      (accumulate op initial (cdr sequence)))))
+
+(define (repeat n x)
+  (if (= n 0)
+    '()
+    (cons x (repeat (- n 1) x))))
+; PGM Manipulation functions
+; Invert the colors of a pgm, using maxval
+(define (invert pgm)
+  (let ((parameters (car pgm))
+        (matrix (cdr pgm)))
+    (cons parameters
+      (map
+        (lambda (x) (- (caddr parameters) x))
+        matrix))))
+
+(define (avg items) (floor (/ (accumulate + 0 items) (length items))))
+
+(define (downscale-x bytes)
+  (map avg (split bytes 2)))
+
+(define (downscale-y bytes width)
+  (accumulate append '()
+    (map
+      (lambda (tworows)
+        (map (lambda (x y) (avg (list x y))) (car tworows) (cadr tworows)))
+      (split (split bytes width) 2))))
+
+; SICP Functions
+; Assumes that both images have same width, height, maxval.
+(define (beside a b)
+  (cons (car a)
+    (downscale-x
+      (accumulate append '()
+        (map append (split (cdr a) (caar a)) (split (cdr b) (caar b)))))))
+
+; Assumes that both images have same width, height, maxval.
+(define (below a b)
+  (cons (car a)
+        (downscale-y 
+          (append (cdr a) (cdr b))
+          (caar a))))
+
+(define (flip-vert image)
+  (cons (car image)
+        (accumulate append '() 
+          (reverse (split (cdr image) (caar image))))))
+
+; rogers-path points to the PGM file containing the image of W.B. Rogers.
+(define rogers-path "founder2.pgm")
+
+(define rogers (read-binary-pgm-file rogers-path))

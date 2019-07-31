@@ -1,4 +1,5 @@
 (load "Chapter 1.scm")
+(load "pgm.scm")
 
 ; === 2.1 ===
 (define (make-rat n d)
@@ -562,6 +563,21 @@
 ; Since the queen-cols function is being called for every possible row, this means that for 1 column
 ; there will be 8 queen-cols calls. And this happen for 8 columns recursively. That means 8^8 calls.
 ; I think that the running time would be 8^8T.
+
+; === 2.44 ===
+(define (right-split painter n)
+  (if (= n 0)
+    painter
+    (let ((smaller (right-split painter (- n 1))))
+      (beside painter (below smaller smaller)))))
+
+; (define (corner-split painter n)
+;   (if (= n 0)
+;     painter
+;     (let ((up (up-split painter ( - n 1)))
+;           (right (right-split painter (- n 1))))
+;       (let ((top-left (beside up up)))
+;             (bottom-right ())))))
 
 ; === 2.53 ===
 (list 'a 'b 'c) ; (a b c)
