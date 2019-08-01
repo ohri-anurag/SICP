@@ -81,23 +81,33 @@
     (close-port port)))
 
 ; Helper functions
+(define (split-at n items)
+  (define (iter items result i)
+    (if (= i 0)
+      (cons (reverse result) items)
+      (iter (cdr items) (cons (car items) result) (- i 1))))
+  (iter items '() n))
+
 (define (split bytes len)
-  (define (split-helper bytes i tmp acc)
-    (cond ((null? bytes) (reverse (cons (reverse tmp) acc)))
-          ((= i len) (split-helper bytes 0 '() (cons (reverse tmp) acc)))
-          (else (split-helper (cdr bytes) (+ i 1) (cons (car bytes) tmp) acc))))
-  (split-helper bytes 0 '() '()))
+  (define (iter items result)
+    (if (null? items)
+      (reverse result)
+      (let ((x (split-at len items)))
+        (iter (cdr x) (cons (car x) result)))))
+  (iter bytes '()))
 
 (define (accumulate op initial sequence)
-  (if (null? sequence)
-    initial
-    (op (car sequence)
-      (accumulate op initial (cdr sequence)))))
+  (define (iter items result)
+    (if (null? items)
+      result
+      (iter (cdr items) (op (car items) result))))
+  (iter sequence initial))
 
 (define (repeat n x)
   (if (= n 0)
     '()
     (cons x (repeat (- n 1) x))))
+
 ; PGM Manipulation functions
 ; Invert the colors of a pgm, using maxval
 (define (invert pgm)
@@ -132,7 +142,7 @@
 (define (below a b)
   (cons (car a)
         (downscale-y 
-          (append (cdr a) (cdr b))
+          (append (cdr b) (cdr a))
           (caar a))))
 
 (define (flip-vert image)
