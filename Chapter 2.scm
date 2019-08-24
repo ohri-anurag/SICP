@@ -1,5 +1,5 @@
 (load "Chapter 1.scm")
-(load "pgm.scm")
+(import (pgm))
 
 ; === 2.1 ===
 (define (make-rat n d)
