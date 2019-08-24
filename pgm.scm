@@ -150,6 +150,12 @@
         (accumulate append '() 
           (reverse (split (cdr image) (caar image))))))
 
+(define (flip-horiz image)
+  (cons (car image)
+        (accumulate append '()
+          (map reverse
+            (split (cdr image) (caar image))))))
+
 ; rogers-path points to the PGM file containing the image of W.B. Rogers.
 (define rogers-path "founder2.pgm")
 

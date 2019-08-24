@@ -588,6 +588,11 @@
         (beside (below painter top-left)
                 (below bottom-right corner))))))
 
+(define (square-limit painter n)
+  (let ((quarter (corner-split painter n)))
+    (let ((half (beside (flip-horiz quarter) quarter)))
+      (below (flip-vert half) half))))
+
 ; === 2.53 ===
 (list 'a 'b 'c) ; (a b c)
 (list (list 'george)) ; ((george))
