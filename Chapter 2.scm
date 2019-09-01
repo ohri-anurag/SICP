@@ -565,17 +565,17 @@
 ; I think that the running time would be 8^8T.
 
 ; === 2.44 ===
-(define (right-split painter n)
-  (if (= n 0)
-    painter
-    (let ((smaller (right-split painter (- n 1))))
-      (beside painter (below smaller smaller)))))
+; (define (right-split painter n)
+;   (if (= n 0)
+;     painter
+;     (let ((smaller (right-split painter (- n 1))))
+;       (beside painter (below smaller smaller)))))
 
-(define (up-split painter n)
-  (if (= n 0)
-    painter
-    (let ((smaller (up-split painter (- n 1))))
-      (below painter (beside smaller smaller)))))
+; (define (up-split painter n)
+;   (if (= n 0)
+;     painter
+;     (let ((smaller (up-split painter (- n 1))))
+;       (below painter (beside smaller smaller)))))
 
 (define (corner-split painter n)
   (if (= n 0)
@@ -592,6 +592,18 @@
   (let ((quarter (corner-split painter n)))
     (let ((half (beside (flip-horiz quarter) quarter)))
       (below (flip-vert half) half))))
+
+; === 2.45 ===
+(define (split ta tb)
+  (define (split-helper painter n)
+    (if (= n 0)
+      painter
+      (let ((smaller (split-helper painter (- n 1))))
+        (ta painter (tb smaller smaller)))))
+  split-helper)
+
+(define right-split (split beside below))
+(define up-split (split below beside))
 
 ; === 2.53 ===
 (list 'a 'b 'c) ; (a b c)
